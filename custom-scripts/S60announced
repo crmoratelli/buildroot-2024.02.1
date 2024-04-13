@@ -1,27 +1,24 @@
 #!/bin/sh
-
-#Destination Port
+  
+#Destination IP and Port
+DEST_IP=192.168.1.13
 DEST_PORT=7001
-
-# Get IP address and Hostname
-IP_ADDRESS=$(ip addr show eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
-HOSTNAME=$(hostname)
-
-NETWORK_PART=$(echo $IP_ADDRESS | cut -d '.' -f 1-3)
-BROADCAST="$NETWORK_PART.255"
-
-# Combine the information
-MESSAGE="IP Address: $IP_ADDRESS, Hostname: $HOSTNAME"
-
-# Destination details
-DEST_IP=$BROADCAST
-
+INTERFACE="eth0"
+  
 while true; do
-    # Send the message through UDP
-    echo "$MESSAGE" | nc -ubw 1 $DEST_IP $DEST_PORT
+  # Get IP addr, Hostname and MAC Addr
+  IP_ADDRESS=$(ip addr show $INTERFACE | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
+  HOSTNAME=$(hostname)
+  MAC_ADDRESS=$(ip link show $INTERFACE | awk '/ether/ {print $2}')
 
-    echo "Message sent: $MESSAGE"
+  # Combine the information
+  MESSAGE="IP Address: $IP_ADDRESS, Hostname: $HOSTNAME, MAC Addr: $MAC_ADDRESS"
+  
+  # Send the message through UDP
+  echo "$MESSAGE" | nc -uw 1 $DEST_IP $DEST_PORT
+  
+  echo "Message sent: $MESSAGE"
 
-    # Wait for 1 second before the next run
-    sleep 1
+  # Wait for 1 second before the next run
+  sleep 1
 done
